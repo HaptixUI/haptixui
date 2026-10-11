@@ -171,630 +171,415 @@
 }
 
 /* --------------------------------------------------------------------------
-   COMPONENT 3: PARTICLE HEART FAVORITE BUTTON
+   COMPONENT 3: 3D ROTATING GLOWING HEART (MATHEMATICAL CANVAS)
    -------------------------------------------------------------------------- */
-.heart-btn-wrap {
-  display: inline-block;
+.heart-3d-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
   user-select: none;
 }
 
-.heart-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #181920;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 26px;
-  border-radius: 9999px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  color: #f1f5f9;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  transition: all 0.25s ease;
+.heart-3d-container:active {
+  cursor: grabbing;
 }
 
-.heart-btn:hover {
-  background: #222430;
-  border-color: rgba(255, 59, 92, 0.4);
-  transform: translateY(-2px);
+.heart-3d-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
 
-.heart-icon-box {
-  position: relative;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.heart-icon-box svg {
-  width: 24px;
-  height: 24px;
-  stroke: #94a3b8;
-  fill: transparent;
-  stroke-width: 2;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.heart-btn.liked .heart-icon-box svg {
-  stroke: #ff2a6d;
-  fill: #ff2a6d;
-  animation: heartPop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49);
-}
-
-@keyframes heartPop {
-  0% { transform: scale(1); }
-  45% { transform: scale(1.45); }
-  75% { transform: scale(0.9); }
-  100% { transform: scale(1); }
-}
-
-/* Particle Sparks */
-.sparkle-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-.sparkle {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  opacity: 0;
-}
-
-.heart-btn.liked .sparkle {
-  animation: explodeSpark 0.6s ease-out forwards;
-}
-
-@keyframes explodeSpark {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--tx), var(--ty)) scale(0);
-    opacity: 0;
-  }
-}
-
-.heart-count {
-  font-variant-numeric: tabular-nums;
-  color: #94a3b8;
-  transition: color 0.3s ease;
-}
-
-.heart-btn.liked .heart-count {
-  color: #ff2a6d;
+.modal-preview-stage .heart-3d-container {
+  height: 320px;
+  max-width: 440px;
 }
 
 /* --------------------------------------------------------------------------
-   COMPONENT 4: DAY & NIGHT COSMIC THEME TOGGLE
+   COMPONENT 4: SAKURA FRACTAL TREE
    -------------------------------------------------------------------------- */
-.theme-switch-wrap {
-  display: inline-block;
+.sakura-tree-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
   user-select: none;
 }
 
-.theme-switch {
-  position: relative;
-  width: 82px;
-  height: 42px;
-  border-radius: 9999px;
-  background: #0f172a;
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  cursor: pointer;
-  overflow: hidden;
-  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.3);
-  transition: background 0.45s ease, border-color 0.45s ease;
+.sakura-tree-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
 
-.theme-switch.is-day {
-  background: #38bdf8;
-  border-color: #7dd3fc;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2), 0 8px 20px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-/* Celestial Orb (Sun/Moon) */
-.celestial-orb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  box-shadow: inset -2px -2px 0 0 rgba(148, 163, 184, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
-  transform: translateX(0);
-  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.45s ease, box-shadow 0.45s ease;
-}
-
-.theme-switch.is-day .celestial-orb {
-  transform: translateX(40px);
-  background: #facc15;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1.5px #fef08a, inset -1px -1px 0 rgba(234, 179, 8, 0.5);
-}
-
-/* Stars & Clouds */
-.sky-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.sky-stars {
-  position: absolute;
-  inset: 0;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-.sky-star {
-  position: absolute;
-  background: #ffffff;
-  border-radius: 50%;
-  opacity: 0.8;
-  animation: starTwinkle 2s infinite alternate ease-in-out;
-}
-
-@keyframes starTwinkle {
-  0% { transform: scale(0.6); opacity: 0.3; }
-  100% { transform: scale(1.2); opacity: 1; }
-}
-
-.sky-clouds {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.4s ease;
-}
-
-.theme-switch.is-day .sky-stars {
-  opacity: 0;
-}
-
-.theme-switch.is-day .sky-clouds {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.cloud-bubble {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 50%;
+.modal-preview-stage .sakura-tree-container {
+  height: 340px;
+  max-width: 480px;
 }
 
 /* --------------------------------------------------------------------------
-   COMPONENT 5: TRASH / SHREDDER DELETE BUTTON
+   COMPONENT 5: 3D DNA DOUBLE HELIX
    -------------------------------------------------------------------------- */
-.trash-btn-wrap {
-  display: inline-block;
+.dna-helix-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
   user-select: none;
 }
 
-.trash-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 220px;
-  height: 56px;
-  background: #1c1d24;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 9999px;
-  color: #f87171;
-  font-family: inherit;
-  font-size: 15.5px;
-  font-weight: 600;
-  cursor: pointer;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.dna-helix-container:active {
+  cursor: grabbing;
 }
 
-.trash-btn:hover:not(.deleting):not(.deleted) {
-  background: #2a1b22;
-  border-color: #ef4444;
-  color: #ffffff;
-  box-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(239, 68, 68, 0.5);
-  transform: translateY(-2px);
+.dna-helix-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
 
-.trash-icon-box {
-  position: relative;
-  width: 22px;
-  height: 22px;
-}
-
-.trash-can-body {
-  width: 18px;
-  height: 18px;
-  position: absolute;
-  bottom: 0;
-  left: 2px;
-}
-
-.trash-can-lid {
-  width: 18px;
-  height: 6px;
-  position: absolute;
-  top: 0;
-  left: 2px;
-  transform-origin: 0% 100%;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.trash-btn:hover .trash-can-lid {
-  transform: rotate(-30deg) translateY(-2px);
-}
-
-.trash-btn.deleting {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #ef4444;
-  box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.7), 0 0 0 1.5px rgba(255, 255, 255, 0.3);
-  animation: trashShake 0.4s ease infinite;
-}
-
-@keyframes trashShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-3px); }
-  75% { transform: translateX(3px); }
-}
-
-.trash-btn.deleted {
-  background: #181920;
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
-  cursor: default;
+.modal-preview-stage .dna-helix-container {
+  height: 340px;
+  max-width: 480px;
 }
 
 /* --------------------------------------------------------------------------
-   COMPONENT 6: 3D HOLOGRAPHIC TILT CARD
+   COMPONENT 6: 3D INTERACTIVE PERIODIC TABLE
    -------------------------------------------------------------------------- */
-.holo-card-perspective {
-  perspective: 1000px;
-  display: inline-block;
+periodic-table-3d {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.holo-card {
+.ptable-wrap {
   position: relative;
-  width: 260px;
-  height: 160px;
-  background: rgba(23, 25, 35, 0.85);
-  backdrop-filter: blur(16px);
-  border-radius: 24px;
-  padding: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  transform-style: preserve-3d;
-  transition: transform 0.15s ease-out, box-shadow 0.25s ease, border-color 0.25s ease;
-  overflow: hidden;
-}
-
-.holo-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.holo-card:hover::before {
-  opacity: 1;
-}
-
-.holo-card:hover {
-  border-color: rgba(0, 168, 255, 0.4);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
-}
-
-.holo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  padding: 3px 8px;
-  border-radius: 9999px;
-  margin-bottom: 14px;
-}
-
-.holo-title {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  letter-spacing: -0.01em;
-}
-
-.holo-desc {
-  color: #94a3b8;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 7: <copy-button>
-   Fluid Ripple Copy Button with Success State
-   -------------------------------------------------------------------------- */
-.copy-btn-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.copy-pill-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
-  background: #151821;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  overflow: hidden;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.copy-pill-btn:hover:not(.copied) {
-  background: #1c202d;
-  border-color: rgba(0, 168, 255, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
-}
-
-.copy-pill-btn:active {
-  transform: translateY(0) scale(0.97);
-}
-
-.copy-pill-btn.copied {
-  background: #0d2818;
-  border-color: #22c55e;
-  color: #4ade80;
-}
-
-.copy-icon-box {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.copy-icon-default,
-.copy-icon-check {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.copy-icon-check {
-  opacity: 0;
-  transform: scale(0.3) rotate(-30deg);
-  color: #22c55e;
-}
-
-.copy-pill-btn.copied .copy-icon-default {
-  opacity: 0;
-  transform: scale(0.3) rotate(30deg);
-}
-
-.copy-pill-btn.copied .copy-icon-check {
-  opacity: 1;
-  transform: scale(1) rotate(0);
-}
-
-.copy-btn-text {
-  transition: color 0.3s ease;
-}
-
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 8: <cyber-toggle>
-   Futuristic Cyberpunk Switch
-   -------------------------------------------------------------------------- */
-.cyber-toggle-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cyber-switch {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   background: transparent;
   border: none;
-  cursor: pointer;
-  padding: 0;
-  outline: none;
+  border-radius: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: background 0.25s ease;
 }
 
-.cyber-track {
-  position: relative;
-  width: 90px;
-  height: 44px;
-  background: #10131a;
-  border: 1.5px solid #232838;
-  border-radius: 22px;
-  padding: 4px;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+.ptable-wrap:active {
+  cursor: grabbing;
+}
+
+/* Bottom Toolbar - Leaves top-left (modal theme) and top-right (card theme) completely clear */
+.ptable-toolbar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  overflow: hidden;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: auto;
 }
 
-.cyber-switch.active .cyber-track {
-  background: #091a29;
-  border-color: #00a8ff;
+.ptable-modes {
+  display: inline-flex;
+  gap: 2px;
+  background: rgba(12, 17, 29, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 2.5px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 }
 
-.cyber-status-text {
-  font-family: 'Fira Code', monospace;
+.pt-btn {
+  padding: 3.5px 8px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
   font-size: 10px;
   font-weight: 700;
-  padding: 0 10px;
-  user-select: none;
-  transition: opacity 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
-.cyber-status-text.off {
+.pt-btn:hover {
+  color: #ffffff;
+}
+
+.pt-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.pt-lab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3.5px 9px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  transition: all 0.15s ease;
+}
+
+.pt-lab-link:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.ptable-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Modal Stage Preview Constraints */
+.modal-preview-stage {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.modal-preview-stage periodic-table-3d {
+  max-width: 460px;
+}
+
+.modal-preview-stage .ptable-wrap {
+  height: 350px;
+  max-width: 460px;
+}
+
+/* Light Stage Adaptations (Preserves user's Dark / Light toggle) */
+.stage-light .ptable-wrap,
+.comp-stage.stage-light .ptable-wrap,
+.modal-preview-pane.stage-light .ptable-wrap {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.stage-light .ptable-modes,
+.comp-stage.stage-light .ptable-modes,
+.modal-preview-pane.stage-light .ptable-modes {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stage-light .pt-btn,
+.comp-stage.stage-light .pt-btn,
+.modal-preview-pane.stage-light .pt-btn {
   color: #64748b;
 }
 
-.cyber-status-text.on {
-  color: #00a8ff;
-  opacity: 0.3;
+.stage-light .pt-btn:hover,
+.comp-stage.stage-light .pt-btn:hover,
+.modal-preview-pane.stage-light .pt-btn:hover {
+  color: #0f172a;
 }
 
-.cyber-switch.active .cyber-status-text.on {
-  opacity: 1;
+.stage-light .pt-btn.active,
+.comp-stage.stage-light .pt-btn.active,
+.modal-preview-pane.stage-light .pt-btn.active {
+  background: #0284c7;
+  color: #ffffff;
 }
 
-.cyber-switch.active .cyber-status-text.off {
-  opacity: 0.3;
+.stage-light .pt-lab-link,
+.comp-stage.stage-light .pt-lab-link,
+.modal-preview-pane.stage-light .pt-lab-link {
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(2, 132, 199, 0.35);
+  color: #0284c7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.cyber-thumb {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 34px;
-  height: 34px;
-  background: #202636;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease;
-  z-index: 5;
-}
-
-.cyber-thumb-core {
-  width: 10px;
-  height: 10px;
-  background: #64748b;
-  border-radius: 50%;
-  transition: background 0.35s ease;
-}
-
-.cyber-switch.active .cyber-thumb {
-  transform: translateX(46px);
-  background: #00a8ff;
-}
-
-.cyber-switch.active .cyber-thumb-core {
-  background: #ffffff;
+.stage-light .pt-lab-link:hover,
+.comp-stage.stage-light .pt-lab-link:hover,
+.modal-preview-pane.stage-light .pt-lab-link:hover {
+  background: #0284c7;
+  color: #ffffff;
 }
 
 /* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 9: <quantum-loader>
-   Multi-axis Orbit Particles Loader
+   COMPONENT: CYBERNETIC TACTILE TOGGLE SWITCH (<cyber-switch>)
    -------------------------------------------------------------------------- */
-.quantum-loader-wrap {
+.cyber-switch-wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  user-select: none;
 }
 
-.quantum-spinner {
+.cyber-switch-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  outline: none;
+  border-radius: 9999px;
+  touch-action: manipulation;
+  transition: transform 0.15s ease;
+}
+
+.cyber-switch-btn:active {
+  transform: scale(0.96);
+}
+
+.switch-chassis {
   position: relative;
-  width: 64px;
-  height: 64px;
-  transform-style: preserve-3d;
-  perspective: 400px;
+  width: 116px;
+  height: 50px;
+  background: #0d1017;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.7),
+    0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.quantum-orbit {
+.switch-rail {
   position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid transparent;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  background: #05060a;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-.orbit-1 {
-  border-top-color: #00a8ff;
-  border-bottom-color: #00a8ff;
-  animation: rotateOrbit1 1.6s linear infinite;
-}
-
-.orbit-2 {
-  border-right-color: #a855f7;
-  border-left-color: #a855f7;
-  animation: rotateOrbit2 1.4s linear infinite reverse;
-}
-
-.orbit-3 {
-  border-top-color: #22c55e;
-  border-right-color: #22c55e;
-  animation: rotateOrbit3 1.8s linear infinite;
-}
-
-.quantum-center-dot {
+.switch-thumb {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  background: #ffffff;
+  left: 4px;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, #242938, #141722);
   border-radius: 50%;
-  animation: pulseDot 1.2s ease-in-out infinite alternate;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, border-color 0.3s ease;
+  z-index: 2;
 }
 
-.quantum-label {
+.thumb-core {
+  width: 14px;
+  height: 14px;
+  background: #090a0f;
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.switch-status {
+  position: absolute;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-family: 'Fira Code', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  transition: all 0.3s ease;
+  pointer-events: none;
 }
 
-@keyframes rotateOrbit1 {
-  0% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(0deg); }
-  100% { transform: rotateX(35deg) rotateY(-45deg) rotateZ(360deg); }
+.status-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #475569;
+  box-shadow: 0 0 2px #475569;
+  transition: all 0.3s ease;
 }
 
-@keyframes rotateOrbit2 {
-  0% { transform: rotateX(50deg) rotateY(40deg) rotateZ(0deg); }
-  100% { transform: rotateX(50deg) rotateY(40deg) rotateZ(360deg); }
+/* Active State */
+.cyber-switch-btn.is-active .switch-chassis {
+  border-color: rgba(0, 168, 255, 0.45);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 0 1.5px rgba(0, 168, 255, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.6);
 }
 
-@keyframes rotateOrbit3 {
-  0% { transform: rotateX(-45deg) rotateY(60deg) rotateZ(0deg); }
-  100% { transform: rotateX(-45deg) rotateY(60deg) rotateZ(360deg); }
+.cyber-switch-btn.is-active .switch-thumb {
+  transform: translateX(66px);
+  background: linear-gradient(145deg, #0f2b48, #0a1b2d);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(56, 189, 248, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
 
-@keyframes pulseDot {
-  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
-  100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+.cyber-switch-btn.is-active .thumb-core {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
 }
+
+.cyber-switch-btn.is-active .switch-status {
+  left: 14px;
+  right: auto;
+  color: #38bdf8;
+}
+
+.cyber-switch-btn.is-active .status-led {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+
 
