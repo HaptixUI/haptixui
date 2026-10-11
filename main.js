@@ -102,13 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (sidebarExpandFloatBtn) {
-    sidebarExpandFloatBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleSidebar(true);
-    });
-  }
-
   // Set Active Category
   function setCategory(cat) {
     activeCategory = cat;
@@ -189,11 +182,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Sort dropdown
-  sortSelect.addEventListener('change', (e) => {
-    activeSort = e.target.value;
+  // Modern Custom Sort Dropdown Handler
+  const sortDropdown = document.getElementById('sortDropdown');
+  const sortTrigger = document.getElementById('sortTrigger');
+  const sortCurrentLabel = document.getElementById('sortCurrentLabel');
+  const sortMenuItems = document.querySelectorAll('#sortMenu .dropdown-item');
+
+  function setSort(val, label) {
+    activeSort = val;
+    if (sortCurrentLabel) sortCurrentLabel.textContent = `Sort: ${label}`;
+    if (sortSelect) sortSelect.value = val;
+
+    sortMenuItems.forEach(item => {
+      const isSelected = item.dataset.value === val;
+      item.classList.toggle('active', isSelected);
+      item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
+
+    if (sortDropdown) {
+      sortDropdown.classList.remove('open');
+      if (sortTrigger) sortTrigger.setAttribute('aria-expanded', 'false');
+    }
     renderGrid();
-  });
+  }
+
+  if (sortTrigger && sortDropdown) {
+    sortTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = sortDropdown.classList.toggle('open');
+      sortTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    sortMenuItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = item.dataset.value;
+        const text = item.querySelector('.item-title')?.textContent || 'Default';
+        setSort(val, text);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!sortDropdown.contains(e.target)) {
+        sortDropdown.classList.remove('open');
+        sortTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sortDropdown.classList.contains('open')) {
+        sortDropdown.classList.remove('open');
+        sortTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      const opt = sortSelect.options[sortSelect.selectedIndex];
+      setSort(e.target.value, opt ? opt.text.replace('Sort: ', '') : 'Default');
+    });
+  }
 
   // Render Grid
   function renderGrid() {
@@ -211,8 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sort
     if (activeSort === 'name') {
       filtered.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (activeSort === 'views') {
-      filtered.sort((a, b) => parseFloat(b.views || '0') - parseFloat(a.views || '0'));
+    } else if (activeSort === 'name-desc') {
+      filtered.sort((a, b) => b.name.localeCompare(a.name));
     }
 
     // Update count badge
@@ -222,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #64748b; background: #0c0e15; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.1);">
           <p style="font-size: 18px; color: #ffffff; margin-bottom: 8px;">No elements found for "${searchQuery}"</p>
-          <p style="font-size: 14px; margin-bottom: 16px;">Try searching for "button", "toggle", "card", or reset filters.</p>
+          <p style="font-size: 14px; margin-bottom: 16px;">Try searching for "button", "interactive", or reset filters.</p>
           <button id="resetSearchBtn" style="background: rgba(0, 168, 255, 0.15); border: 1px solid #00a8ff; color: #00a8ff; padding: 7px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">Reset Search</button>
         </div>
       `;
@@ -262,26 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="comp-body">
           <div class="comp-info-top">
             <h2 class="comp-title">${comp.name}</h2>
-            <span class="comp-badge">${comp.badge}</span>
-          </div>
-
-          <div class="comp-stats-row">
-            <div class="comp-stats-left">
-              <span class="stat-item">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                ${comp.views || '24.5K'}
-              </span>
-              <span class="stat-item">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-                ${comp.likes || '2.1K'}
-              </span>
-            </div>
-            <span style="font-size: 11px; color: #64748b;">${comp.category}</span>
           </div>
 
           <div class="comp-actions-row">
@@ -290,14 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <polyline points="16 18 22 12 16 6"></polyline>
                 <polyline points="8 6 2 12 8 18"></polyline>
               </svg>
-              Get Code
-            </button>
-            <button class="btn-quick-copy quick-copy-btn" data-id="${comp.id}" title="Quick copy HTML tag" aria-label="Copy component tag">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
+              <span>Get Code</span>
             </button>
           </div>
         </div>
@@ -311,30 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
         stageEl.classList.toggle('stage-light');
       });
 
-      // Quick Copy
-      const copyBtn = card.querySelector('.quick-copy-btn');
-      copyBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigator.clipboard?.writeText(comp.htmlCode).then(() => {
-          copyBtn.classList.add('copied');
-          copyBtn.innerHTML = `
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Copied!
-          `;
-          showToast(`Copied <${comp.id}> HTML snippet!`);
-          setTimeout(() => {
-            copyBtn.classList.remove('copied');
-            copyBtn.innerHTML = `
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Copy
-            `;
-          }, 2000);
-        });
+      // 3D Card Hover Tilt Micro-Interaction (Desktop)
+      card.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 1024) return;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rotX = -(y / (rect.height / 2)) * 3.5;
+        const rotY = (x / (rect.width / 2)) * 3.5;
+        card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
       });
 
       // Inspect Modal
@@ -346,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.appendChild(card);
     });
   }
+
 
   // Open Inspector Modal
   function openModal(comp) {
@@ -411,7 +422,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 
+  // Dynamic category counts synchronization
+  function updateCategoryCounts() {
+    const counts = {
+      'All': COMPONENTS_REGISTRY.length,
+      'Buttons': COMPONENTS_REGISTRY.filter(c => c.category === 'Buttons').length,
+      'Interactive': COMPONENTS_REGISTRY.filter(c => c.category === 'Interactive').length
+    };
+    sidebarNavItems.forEach(item => {
+      const cat = item.dataset.category;
+      const countEl = item.querySelector('.item-count');
+      if (countEl && counts[cat] !== undefined) {
+        countEl.textContent = counts[cat];
+      }
+    });
+  }
+
   // Initial load
+  updateCategoryCounts();
   renderGrid();
 
   // Deep-linking: Automatically open modal for direct reel shares (e.g. ?id=download-button)
@@ -427,3 +455,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+
