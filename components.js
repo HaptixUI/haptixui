@@ -4,9 +4,10 @@
  */
 
 import './download-button.js';
+import { ELEMENTS, CATEGORIES } from './periodic_data.js';
 
 /* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 2: <cart-button>
+   CUSTOM ELEMENT: <cart-button>
    -------------------------------------------------------------------------- */
 class CartButton extends HTMLElement {
   connectedCallback() {
@@ -86,276 +87,989 @@ class CartButton extends HTMLElement {
 customElements.define('cart-button', CartButton);
 
 /* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 3: <heart-button>
+   CUSTOM ELEMENT: <cyber-switch>
+   Tactile Cybernetic Slide Switch with Micro-LED & Spring Rail
    -------------------------------------------------------------------------- */
-class HeartButton extends HTMLElement {
+class CyberSwitch extends HTMLElement {
   connectedCallback() {
-    this.count = 1428;
-    this.liked = false;
-
     this.innerHTML = `
-      <div class="heart-btn-wrap">
-        <button class="heart-btn" type="button" aria-label="Like button">
-          <div class="heart-icon-box">
-            <svg viewBox="0 0 24 24">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            <div class="sparkle-container"></div>
+      <div class="cyber-switch-wrap">
+        <button class="cyber-switch-btn" type="button" aria-pressed="false" role="switch" aria-label="Cybernetic toggle switch">
+          <div class="switch-chassis">
+            <div class="switch-rail"></div>
+            <div class="switch-thumb">
+              <div class="thumb-core"></div>
+            </div>
+            <div class="switch-status">
+              <span class="status-led"></span>
+              <span class="status-text">OFF</span>
+            </div>
           </div>
-          <span class="heart-count">1,428</span>
         </button>
       </div>
     `;
 
-    const btn = this.querySelector('.heart-btn');
-    const countEl = this.querySelector('.heart-count');
-    const sparkleBox = this.querySelector('.sparkle-container');
-
-    const colors = ['#ff2a6d', '#00a8ff', '#ffd166', '#06d6a0', '#a855f7', '#ff70a6'];
+    const btn = this.querySelector('.cyber-switch-btn');
+    const statusText = this.querySelector('.status-text');
 
     btn.addEventListener('click', () => {
-      this.liked = !this.liked;
-      btn.classList.toggle('liked', this.liked);
+      const isPressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', !isPressed);
+      btn.classList.toggle('is-active', !isPressed);
+      statusText.textContent = !isPressed ? 'ACTIVE' : 'OFF';
 
-      if (this.liked) {
-        countEl.textContent = (this.count + 1).toLocaleString();
-        sparkleBox.innerHTML = '';
-        for (let i = 0; i < 14; i++) {
-          const angle = (i / 14) * 2 * Math.PI;
-          const dist = 24 + Math.random() * 16;
-          const tx = Math.cos(angle) * dist;
-          const ty = Math.sin(angle) * dist;
-          const s = document.createElement('div');
-          s.className = 'sparkle';
-          s.style.background = colors[i % colors.length];
-          s.style.setProperty('--tx', `${tx}px`);
-          s.style.setProperty('--ty', `${ty}px`);
-          sparkleBox.appendChild(s);
+      this.dispatchEvent(new CustomEvent('change', {
+        detail: { active: !isPressed },
+        bubbles: true
+      }));
+    });
+  }
+}
+customElements.define('cyber-switch', CyberSwitch);
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <heart-3d>
+   Mathematical 3D Volumetric Heart Particle Cloud
+   -------------------------------------------------------------------------- */
+class Heart3D extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="heart-3d-container">
+        <canvas class="heart-3d-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.heart-3d-container');
+    const canvas = this.querySelector('.heart-3d-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 1. Parametric Heart Equations
+    const heartParametric = (u) => {
+      const x = 1.6 * Math.pow(Math.sin(u), 3);
+      const y = 1.3 * Math.cos(u) - 0.5 * Math.cos(2 * u) - 0.2 * Math.cos(3 * u) - 0.1 * Math.cos(4 * u);
+      return { x, y };
+    };
+
+    // 2. Volumetric 3D Points Cloud
+    const N = 2600;
+    const pts = [];
+    for (let i = 0; i < N; i++) {
+      const u = Math.random() * Math.PI * 2;
+      const { x: hx, y: hy } = heartParametric(u);
+      const rad = Math.sqrt(Math.random());
+      const x = hx * rad;
+      const y = hy * rad;
+      const z = 1.1 * (1 - rad) * (Math.random() * 2 - 1);
+      pts.push({ x, y, z });
+    }
+
+    // 3. Color Depth Palette (Pure Crimson to Radiant Ruby Red)
+    const getDepthColor = (depth) => {
+      const f = Math.max(0.0, Math.min(1.0, depth));
+      const r = Math.round(70 + (255 - 70) * f);
+      const g = Math.round(0 + 35 * f);
+      const b = Math.round(15 + (65 - 15) * f);
+      return `rgb(${r}, ${g}, ${b})`;
+    };
+
+    // 4. Responsive Canvas Sizing
+    let width = 280, height = 210;
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 280;
+      height = rect.height || 210;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // 5. Interactive Drag & Natural Momentum Physics
+    let theta = 0;
+    let phi = 0;
+    let velTheta = 0;
+    let velPhi = 0;
+    const idleSpeed = 0.026;
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+
+    container.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      velTheta = 0;
+      velPhi = 0;
+      container.setPointerCapture?.(e.pointerId);
+    });
+
+    container.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+
+      // Natural trackball physics: drag up -> tilts up, drag down -> tilts down
+      theta += dx * 0.01;
+      phi += dy * 0.01;
+      phi = Math.max(-0.75, Math.min(0.75, phi));
+
+      velTheta = dx * 0.008;
+      velPhi = dy * 0.008;
+
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    const stopDrag = () => { isDragging = false; };
+    container.addEventListener('pointerup', stopDrag);
+    container.addEventListener('pointercancel', stopDrag);
+
+    // 6. 60 FPS Render Loop (Natural inertia & pure 3D rotation)
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!isDragging) {
+        theta += velTheta + idleSpeed;
+        phi += velPhi;
+
+        velTheta *= 0.93;
+        velPhi *= 0.93;
+
+        // Gently relax vertical pitch back toward center when idle
+        phi += (0 - phi) * 0.025;
+        phi = Math.max(-0.75, Math.min(0.75, phi));
+      }
+
+      const baseScale = Math.min(width, height) * 0.23;
+      const cosT = Math.cos(theta), sinT = Math.sin(theta);
+      const cosP = Math.cos(phi), sinP = Math.sin(phi);
+
+      const projected = [];
+      const len = pts.length;
+      for (let i = 0; i < len; i++) {
+        const pt = pts[i];
+        const xr1 = pt.x * cosT + pt.z * sinT;
+        const zr1 = -pt.x * sinT + pt.z * cosT;
+        const yr1 = pt.y;
+
+        const yr2 = yr1 * cosP - zr1 * sinP;
+        const zr2 = yr1 * sinP + zr1 * cosP;
+        const xr2 = xr1;
+
+        projected.push({
+          x: xr2,
+          y: -yr2,
+          z: zr2
+        });
+      }
+
+      projected.sort((a, b) => a.z - b.z);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // Render 3D Heart Points (Clean background, no blur stains)
+      const pLen = projected.length;
+      for (let i = 0; i < pLen; i++) {
+        const p = projected[i];
+        const depth = (p.z + 1.1) / 2.2;
+        const px = cx + p.x * baseScale;
+        const py = cy + p.y * baseScale;
+        const dotSize = 1.3 + depth * 2.8;
+
+        ctx.fillStyle = getDepthColor(depth);
+        ctx.beginPath();
+        ctx.arc(px, py, dotSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (depth > 0.9 && i % 4 === 0) {
+          ctx.fillStyle = 'rgba(255, 235, 245, 0.9)';
+          ctx.beginPath();
+          ctx.arc(px, py, dotSize * 0.55, 0, Math.PI * 2);
+          ctx.fill();
         }
-      } else {
-        countEl.textContent = this.count.toLocaleString();
-        sparkleBox.innerHTML = '';
-      }
-    });
-  }
-}
-customElements.define('heart-button', HeartButton);
-
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 4: <theme-toggle>
-   -------------------------------------------------------------------------- */
-class ThemeToggle extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="theme-switch-wrap">
-        <div class="theme-switch" role="button" tabindex="0" aria-label="Toggle theme">
-          <div class="sky-bg">
-            <div class="sky-stars">
-              <span class="sky-star" style="top: 8px; left: 16px; width: 3px; height: 3px;"></span>
-              <span class="sky-star" style="top: 22px; left: 26px; width: 2px; height: 2px; animation-delay: 0.7s;"></span>
-              <span class="sky-star" style="top: 14px; left: 34px; width: 3px; height: 3px; animation-delay: 1.2s;"></span>
-            </div>
-            <div class="sky-clouds">
-              <span class="cloud-bubble" style="bottom: -8px; left: 10px; width: 24px; height: 24px;"></span>
-              <span class="cloud-bubble" style="bottom: -10px; left: 24px; width: 30px; height: 30px;"></span>
-            </div>
-          </div>
-          <div class="celestial-orb"></div>
-        </div>
-      </div>
-    `;
-
-    const toggle = this.querySelector('.theme-switch');
-    toggle.addEventListener('click', () => {
-      toggle.classList.toggle('is-day');
-    });
-  }
-}
-customElements.define('theme-toggle', ThemeToggle);
-
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 5: <trash-button>
-   -------------------------------------------------------------------------- */
-class TrashButton extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="trash-btn-wrap">
-        <button class="trash-btn" type="button" aria-label="Delete item">
-          <div class="trash-icon-box">
-            <svg class="trash-can-lid" viewBox="0 0 24 8" fill="currentColor">
-              <rect x="2" y="2" width="20" height="3" rx="1.5"></rect>
-              <rect x="9" y="0" width="6" height="2" rx="1"></rect>
-            </svg>
-            <svg class="trash-can-body" viewBox="0 0 24 20" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 1h18l-2 18H5L3 1z" fill="rgba(239, 68, 68, 0.2)"></path>
-              <line x1="8" y1="5" x2="8" y2="15"></line>
-              <line x1="12" y1="5" x2="12" y2="15"></line>
-              <line x1="16" y1="5" x2="16" y2="15"></line>
-            </svg>
-          </div>
-          <span class="trash-text">Delete Item</span>
-        </button>
-      </div>
-    `;
-
-    const btn = this.querySelector('.trash-btn');
-    const text = this.querySelector('.trash-text');
-
-    btn.addEventListener('click', () => {
-      if (btn.classList.contains('deleting')) return;
-
-      if (btn.classList.contains('deleted')) {
-        btn.classList.remove('deleted');
-        text.textContent = 'Delete Item';
-        return;
       }
 
-      btn.classList.add('deleting');
-      text.textContent = 'Deleting...';
+      this._animId = requestAnimationFrame(render);
+    };
 
-      setTimeout(() => {
-        btn.classList.remove('deleting');
-        btn.classList.add('deleted');
-        text.textContent = 'Deleted ✓';
-        setTimeout(() => {
-          btn.classList.remove('deleted');
-          text.textContent = 'Delete Item';
-        }, 3000);
-      }, 1000);
-    });
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
   }
 }
-customElements.define('trash-button', TrashButton);
+customElements.define('heart-3d', Heart3D);
 
 /* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 6: <hologram-card>
+   CUSTOM ELEMENT: <sakura-tree>
+   Recursive Blooming Sakura Cherry Blossom Fractal Tree (Sequential 10s Turtle Growth)
    -------------------------------------------------------------------------- */
-class HologramCard extends HTMLElement {
+class SakuraTree extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
-      <div class="holo-card-perspective">
-        <div class="holo-card">
-          <div class="holo-badge">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-            Interactive 3D
+      <div class="sakura-tree-container" title="Click to re-bloom branch-by-branch!">
+        <canvas class="sakura-tree-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.sakura-tree-container');
+    const canvas = this.querySelector('.sakura-tree-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 320, height = 220;
+    let branches = [];
+    let nodes = [];
+    const TOTAL_GROWTH_TIME = 20.0; // 20 seconds calm sequential growth
+    let growthStartTime = performance.now();
+    let windTime = 0;
+
+    const buildTree = () => {
+      branches = [];
+      nodes = [];
+      const startX = width / 2;
+      const startY = height - 16;
+      // Proportional bounds: guarantees at least 15-20% margin on all 4 sides with zero clipping!
+      const trunkLen = Math.min(width * 0.74 / 5.25, height * 0.80 / 4.35);
+      const cutoff = trunkLen * 0.15;
+      const fSize = Math.max(3.2, trunkLen * 0.065);
+      const nSize = Math.max(1.6, trunkLen * 0.032);
+
+      const trace = (x, y, angle, len, depth) => {
+        if (len < cutoff || depth === 0) {
+          nodes.push({
+            branchIndex: branches.length - 1,
+            x: x,
+            y: y,
+            isLeaf: true,
+            size: fSize
+          });
+          return;
+        }
+
+        const rad = angle * Math.PI / 180;
+        const x2 = x + len * Math.sin(rad);
+        const y2 = y - len * Math.cos(rad);
+        const branchIdx = branches.length;
+
+        branches.push({
+          x1: x,
+          y1: y,
+          x2: x2,
+          y2: y2,
+          len: len,
+          depth: depth,
+          angle: angle,
+          thickness: Math.max(1.1, (depth + 1) * (trunkLen / 45) * 0.95)
+        });
+
+        nodes.push({
+          branchIndex: branchIdx,
+          x: x2,
+          y: y2,
+          isLeaf: false,
+          size: nSize
+        });
+
+        // Exact Turtle recursion (left 20 deg, right 20 deg)
+        trace(x2, y2, angle - 20, len * 0.8, depth - 1);
+        trace(x2, y2, angle + 20, len * 0.8, depth - 1);
+      };
+
+      trace(startX, startY, 0, trunkLen, 8);
+
+      const branchDuration = TOTAL_GROWTH_TIME / branches.length;
+      for (let i = 0; i < branches.length; i++) {
+        branches[i].startTime = i * branchDuration;
+        branches[i].endTime = (i + 1) * branchDuration;
+      }
+    };
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildTree();
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // Restart 10s sequential growth on click
+    container.addEventListener('click', () => {
+      growthStartTime = performance.now();
+    });
+
+    const petals = [];
+    for (let i = 0; i < 28; i++) {
+      petals.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5 + 0.4,
+        vy: Math.random() * 0.6 + 0.5,
+        size: Math.random() * 3 + 2,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.04,
+        alpha: Math.random() * 0.5 + 0.4
+      });
+    }
+
+    const drawBlossom = (x, y, size) => {
+      const colors = ['#ff7597', '#ffa3b8', '#ffccd7', '#fff0f3'];
+      ctx.save();
+      ctx.translate(x, y);
+      for (let i = 0; i < 5; i++) {
+        const a = (i * Math.PI * 2) / 5;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * size * 0.65, Math.sin(a) * size * 0.65, size * 0.72, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      const elapsed = (performance.now() - growthStartTime) / 1000;
+      const currentTime = Math.min(elapsed, TOTAL_GROWTH_TIME);
+      windTime += 0.02;
+
+      let activeBranch = null;
+
+      // Draw branches strictly in sequential order
+      for (let i = 0; i < branches.length; i++) {
+        const b = branches[i];
+        if (currentTime < b.startTime) break; // Future branch, wait turn
+
+        ctx.lineCap = 'round';
+        ctx.lineWidth = b.thickness;
+        ctx.strokeStyle = b.depth > 3 ? '#6d4427' : (b.depth > 1 ? '#8c5835' : '#a76d43');
+
+        if (currentTime >= b.endTime) {
+          ctx.beginPath();
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(b.x2, b.y2);
+          ctx.stroke();
+        } else {
+          // Current branch growing smoothly from start to tip
+          const branchDur = b.endTime - b.startTime;
+          const prog = (currentTime - b.startTime) / branchDur;
+          const curX = b.x1 + (b.x2 - b.x1) * prog;
+          const curY = b.y1 + (b.y2 - b.y1) * prog;
+
+          ctx.beginPath();
+          ctx.moveTo(b.x1, b.y1);
+          ctx.lineTo(curX, curY);
+          ctx.stroke();
+
+          activeBranch = { x: curX, y: curY, angle: b.angle };
+          break; // Sequential: only one branch grows at a time
+        }
+      }
+
+      // Draw blossom nodes as branches complete
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        const b = branches[n.branchIndex];
+        if (!b || currentTime < b.endTime) continue;
+
+        if (n.isLeaf) {
+          drawBlossom(n.x, n.y, n.size);
+        } else {
+          ctx.fillStyle = 'rgba(255, 140, 170, 0.85)';
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Glowing active pen tip during growth
+      if (activeBranch && currentTime < TOTAL_GROWTH_TIME) {
+        ctx.save();
+        ctx.translate(activeBranch.x, activeBranch.y);
+        ctx.fillStyle = '#ff3b69';
+        ctx.shadowColor = 'rgba(255, 59, 105, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Falling drifting petals when mature or late in growth
+      if (currentTime > 6.0) {
+        const petalAlpha = Math.min(1.0, (currentTime - 6.0) / 6.0);
+        petals.forEach(p => {
+          p.x += p.vx + Math.sin(windTime + p.y * 0.01) * 0.4;
+          p.y += p.vy;
+          p.rot += p.vRot;
+
+          if (p.y > height + 8) {
+            p.y = -6;
+            p.x = Math.random() * width;
+          }
+          if (p.x > width + 8) p.x = -6;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = `rgba(255, 125, 160, ${p.alpha * petalAlpha})`;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size * 0.5, p.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
+  }
+}
+customElements.define('sakura-tree', SakuraTree);
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <dna-helix>
+   Mathematical 3D Antiparallel DNA Double Helix with Base Pairs
+   -------------------------------------------------------------------------- */
+class DNAHelix extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="dna-helix-container" title="Drag to rotate 3D DNA in real-time!">
+        <canvas class="dna-helix-canvas"></canvas>
+      </div>
+    `;
+
+    const container = this.querySelector('.dna-helix-container');
+    const canvas = this.querySelector('.dna-helix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 320, height = 220;
+    let rotY = 0;
+    let rotX = 0.22;
+    let velY = 0;
+    let velX = 0;
+    let isDragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    let pulseTime = -10;
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+    updateSize();
+
+    // Ambient floating nucleotides
+    const dust = [];
+    for (let i = 0; i < 28; i++) {
+      dust.push({
+        x: (Math.random() - 0.5) * 300,
+        y: (Math.random() - 0.5) * 260,
+        z: (Math.random() - 0.5) * 240,
+        vy: (Math.random() - 0.5) * 0.35,
+        size: Math.random() * 2 + 1,
+        alpha: Math.random() * 0.4 + 0.2
+      });
+    }
+
+    // Pointer Drag Interaction with Inertia
+    container.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      velY = 0;
+      velX = 0;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      container.setPointerCapture(e.pointerId);
+    });
+
+    container.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      velY = dx * 0.009;
+      velX = -dy * 0.009; // Natural tactile pitch: dragging up tilts upward, dragging down tilts downward
+      rotY += velY;
+      rotX += velX;
+      rotX = Math.max(-0.6, Math.min(0.6, rotX));
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+
+    const stopDrag = () => { isDragging = false; };
+    container.addEventListener('pointerup', stopDrag);
+    container.addEventListener('pointercancel', stopDrag);
+
+    // Click triggers genetic transcription pulse wave down the helix
+    container.addEventListener('click', () => {
+      pulseTime = performance.now();
+    });
+
+    const baseColorsDark = [
+      { c1: '#f43f5e', c2: '#06b6d4' }, // Adenine (Rose) - Thymine (Cyan)
+      { c1: '#8b5cf6', c2: '#10b981' }, // Guanine (Violet) - Cytosine (Emerald)
+      { c1: '#06b6d4', c2: '#f43f5e' }, // Thymine - Adenine
+      { c1: '#10b981', c2: '#8b5cf6' }  // Cytosine - Guanine
+    ];
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      // Auto spin & inertia decay
+      if (!isDragging) {
+        velY *= 0.95;
+        velX *= 0.95;
+        rotY += 0.02 + velY;
+        rotX += velX;
+        rotX += (0.2 - rotX) * 0.02;
+      }
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const helixHeight = height * 0.76;
+      const radius = Math.min(width, height) * 0.22;
+      const numPairs = 22;
+      const turns = 1.8;
+
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+
+      const project = (x, y, z) => {
+        const x1 = x * cosY + z * sinY;
+        const z1 = -x * sinY + z * cosY;
+        const y2 = y * cosX - z1 * sinX;
+        const z2 = y * sinX + z1 * cosX;
+        const fov = 420;
+        const scale = fov / (fov + z2);
+        return { px: cx + x1 * scale, py: cy + y2 * scale, z: z2, scale };
+      };
+
+      // Ambient dust particles
+      dust.forEach(d => {
+        d.y += d.vy;
+        if (d.y > 130) d.y = -130;
+        if (d.y < -130) d.y = 130;
+        const p = project(d.x, d.y, d.z);
+        ctx.fillStyle = `rgba(56, 189, 248, ${d.alpha * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(p.px, p.py, d.size * p.scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const renderQueue = [];
+      const now = performance.now();
+      const pulseProg = (now - pulseTime) / 1000; // 0 to 1 over 1.0s
+
+      for (let i = 0; i < numPairs; i++) {
+        const t = i / (numPairs - 1);
+        const y = (t - 0.5) * helixHeight;
+        const theta = t * Math.PI * 2 * turns;
+
+        const pA = project(radius * Math.cos(theta), y, radius * Math.sin(theta));
+        const pB = project(radius * Math.cos(theta + Math.PI), y, radius * Math.sin(theta + Math.PI));
+        const midZ = (pA.z + pB.z) / 2;
+        const pair = baseColorsDark[i % baseColorsDark.length];
+
+        // Wave pulse highlight
+        let isPulsing = false;
+        if (pulseProg >= 0 && pulseProg <= 1.2) {
+          const waveDist = Math.abs(t - (pulseProg / 1.0));
+          if (waveDist < 0.12) isPulsing = true;
+        }
+
+        renderQueue.push({
+          type: 'rung',
+          z: midZ,
+          pA, pB,
+          color1: isPulsing ? '#ffffff' : pair.c1,
+          color2: isPulsing ? '#ffffff' : pair.c2,
+          isPulsing
+        });
+
+        renderQueue.push({
+          type: 'node',
+          z: pA.z,
+          p: pA,
+          color: isPulsing ? '#ffffff' : pair.c1
+        });
+
+        renderQueue.push({
+          type: 'node',
+          z: pB.z,
+          p: pB,
+          color: isPulsing ? '#ffffff' : pair.c2
+        });
+      }
+
+      renderQueue.sort((a, b) => a.z - b.z);
+
+      // Continuous 3D Backbone Curves
+      const drawBackbone = (offset) => {
+        ctx.beginPath();
+        const steps = 60;
+        for (let s = 0; s <= steps; s++) {
+          const t = s / steps;
+          const y = (t - 0.5) * helixHeight;
+          const theta = t * Math.PI * 2 * turns + offset;
+          const p = project(radius * Math.cos(theta), y, radius * Math.sin(theta));
+          if (s === 0) ctx.moveTo(p.px, p.py);
+          else ctx.lineTo(p.px, p.py);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+      };
+      drawBackbone(0);
+      drawBackbone(Math.PI);
+
+      // Depth-Sorted Elements
+      renderQueue.forEach(item => {
+        const depthFactor = Math.max(0.12, Math.min(1.0, (item.z + 180) / 360));
+
+        if (item.type === 'rung') {
+          const mx = (item.pA.px + item.pB.px) / 2;
+          const my = (item.pA.py + item.pB.py) / 2;
+
+          ctx.lineWidth = Math.max(1.6, 3.0 * depthFactor);
+          ctx.lineCap = 'round';
+          ctx.globalAlpha = 0.35 + 0.65 * depthFactor;
+
+          // Left Half
+          ctx.strokeStyle = item.color1;
+          ctx.beginPath();
+          ctx.moveTo(item.pA.px, item.pA.py);
+          ctx.lineTo(mx, my);
+          ctx.stroke();
+
+          // Right Half
+          ctx.strokeStyle = item.color2;
+          ctx.beginPath();
+          ctx.moveTo(mx, my);
+          ctx.lineTo(item.pB.px, item.pB.py);
+          ctx.stroke();
+
+          // Central Hydrogen Bond
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(mx, my, Math.max(1.4, 2.6 * depthFactor), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.globalAlpha = 1.0;
+        } else if (item.type === 'node') {
+          const nodeRadius = Math.max(2.8, (5.0 + 2.4 * depthFactor) * item.p.scale);
+          ctx.save();
+          ctx.globalAlpha = 0.4 + 0.6 * depthFactor;
+
+          ctx.fillStyle = item.color;
+          ctx.beginPath();
+          ctx.arc(item.p.px, item.p.py, nodeRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (depthFactor > 0.4) {
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(item.p.px - nodeRadius * 0.3, item.p.py - nodeRadius * 0.3, nodeRadius * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+      });
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
+  }
+}
+customElements.define('dna-helix', DNAHelix);
+
+/* --------------------------------------------------------------------------
+   CUSTOM ELEMENT: <periodic-table-3d>
+   Interactive 3D Periodic Table with Sphere, Helix, Grid, and Table Morphing
+   -------------------------------------------------------------------------- */
+class PeriodicTable3D extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div class="ptable-wrap" title="Drag to rotate in 3D! Click modes to switch shape.">
+        <div class="ptable-toolbar">
+          <div class="ptable-modes">
+            <button class="pt-btn active" data-mode="sphere">Sphere</button>
+            <button class="pt-btn" data-mode="helix">Helix</button>
+            <button class="pt-btn" data-mode="table">Table</button>
+            <button class="pt-btn" data-mode="grid">Grid</button>
           </div>
-          <h3 class="holo-title">Holo Sheen Card</h3>
-          <p class="holo-desc">Interactive cursor tracking card featuring 3D matrix tilt and light reflection highlights.</p>
         </div>
+        <canvas class="ptable-canvas"></canvas>
       </div>
     `;
 
-    const card = this.querySelector('.holo-card');
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+    const container = this.querySelector('.ptable-wrap');
+    const canvas = this.querySelector('.ptable-canvas');
+    const ctx = canvas.getContext('2d');
+    const modeBtns = this.querySelectorAll('.pt-btn');
 
-      const rotateX = ((y - centerY) / centerY) * -14;
-      const rotateY = ((x - centerX) / centerX) * 14;
+    let width = 320, height = 220;
+    let rotY = 0, rotX = 0.15;
+    let velY = 0, velX = 0;
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+    let currentMode = 'sphere';
 
-      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.04, 1.04, 1.04)`;
-      card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
-      card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+    // Elements data & state
+    const N = ELEMENTS.length;
+    const items = ELEMENTS.map((el, i) => {
+      const cat = CATEGORIES[el.category] || { color: '#38bdf8' };
+      return {
+        el,
+        color: cat.color,
+        curX: (Math.random() - 0.5) * 200,
+        curY: (Math.random() - 0.5) * 200,
+        curZ: (Math.random() - 0.5) * 200,
+        tgtX: 0, tgtY: 0, tgtZ: 0
+      };
     });
 
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    const setModeTargets = (mode) => {
+      currentMode = mode;
+      if (mode === 'table') {
+        rotY = 0;
+        rotX = 0;
+      }
+      items.forEach((item, i) => {
+        const el = item.el;
+        if (mode === 'sphere') {
+          const r = Math.min(width, height) * 0.28;
+          const phi = Math.acos(-1 + (2 * i) / N);
+          const theta = Math.sqrt(N * Math.PI) * phi;
+          item.tgtX = r * Math.sin(phi) * Math.sin(theta);
+          item.tgtY = -r * Math.cos(phi);
+          item.tgtZ = r * Math.sin(phi) * Math.cos(theta);
+        } else if (mode === 'helix') {
+          const r = Math.min(width, height) * 0.26;
+          const theta = i * 0.175 + Math.PI;
+          const y = -(i * 1.2) + (N * 1.2) / 2;
+          item.tgtX = r * Math.sin(theta);
+          item.tgtY = y;
+          item.tgtZ = r * Math.cos(theta);
+        } else if (mode === 'table') {
+          // 18 columns, periods 1 to 9.8. Responsive spacing so 18 columns fit perfectly
+          const spacingX = Math.min(14, Math.max(9, (width - 40) / 19));
+          const spacingY = Math.min(16, Math.max(10, (height - 64) / 11));
+          item.tgtX = (el.group - 9.5) * spacingX;
+          item.tgtY = (el.period - 4.8) * spacingY;
+          item.tgtZ = 0;
+        } else if (mode === 'grid') {
+          const s = Math.min(20, Math.max(14, Math.min(width, height) * 0.085));
+          const gx = (i % 5) - 2;
+          const gy = (Math.floor(i / 5) % 5) - 2;
+          const gz = Math.floor(i / 25) - 2;
+          item.tgtX = gx * s;
+          item.tgtY = -gy * s;
+          item.tgtZ = gz * s;
+        }
+      });
+    };
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width || 320;
+      height = rect.height || 220;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      setModeTargets(currentMode);
+    };
+
+    updateSize();
+    this._ro = new ResizeObserver(() => updateSize());
+    this._ro.observe(container);
+
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        setModeTargets(btn.dataset.mode);
+      });
     });
-  }
-}
-customElements.define('hologram-card', HologramCard);
 
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 7: <copy-button>
-   -------------------------------------------------------------------------- */
-class CopyButton extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="copy-btn-wrap">
-        <button class="copy-pill-btn" type="button" aria-label="Copy to clipboard">
-          <span class="copy-icon-box">
-            <svg class="copy-icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <svg class="copy-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </span>
-          <span class="copy-btn-text">Copy Link</span>
-        </button>
-      </div>
-    `;
-
-    const btn = this.querySelector('.copy-pill-btn');
-    const text = this.querySelector('.copy-btn-text');
-
-    btn.addEventListener('click', () => {
-      if (btn.classList.contains('copied')) return;
-      btn.classList.add('copied');
-      text.textContent = 'Copied!';
-      navigator.clipboard?.writeText(window.location.href).catch(() => {});
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        text.textContent = 'Copy Link';
-      }, 2400);
+    // Pointer Drag (Natural Trackball Physics)
+    container.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.ptable-toolbar')) return;
+      isDragging = true;
+      velY = 0;
+      velX = 0;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      container.setPointerCapture(e.pointerId);
     });
-  }
-}
-customElements.define('copy-button', CopyButton);
 
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 8: <cyber-toggle>
-   -------------------------------------------------------------------------- */
-class CyberToggle extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="cyber-toggle-wrap">
-        <button class="cyber-switch" type="button" aria-label="Toggle cyber switch" role="switch" aria-checked="false">
-          <div class="cyber-track">
-            <span class="cyber-status-text on">ON</span>
-            <div class="cyber-thumb">
-              <div class="cyber-thumb-core"></div>
-            </div>
-            <span class="cyber-status-text off">OFF</span>
-          </div>
-        </button>
-      </div>
-    `;
-
-    const btn = this.querySelector('.cyber-switch');
-    btn.addEventListener('click', () => {
-      const isChecked = btn.classList.toggle('active');
-      btn.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+    container.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      velY = dx * 0.01;
+      velX = -dy * 0.01; // Up drags up, Down drags down
+      rotY += velY;
+      rotX += velX;
+      rotX = Math.max(-0.65, Math.min(0.65, rotX));
+      lastX = e.clientX;
+      lastY = e.clientY;
     });
-  }
-}
-customElements.define('cyber-toggle', CyberToggle);
 
-/* --------------------------------------------------------------------------
-   CUSTOM ELEMENT 9: <quantum-loader>
-   -------------------------------------------------------------------------- */
-class QuantumLoader extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = `
-      <div class="quantum-loader-wrap">
-        <div class="quantum-spinner" aria-label="Loading animation">
-          <div class="quantum-orbit orbit-1"></div>
-          <div class="quantum-orbit orbit-2"></div>
-          <div class="quantum-orbit orbit-3"></div>
-          <div class="quantum-center-dot"></div>
-        </div>
-        <span class="quantum-label">QUANTUM CORE</span>
-      </div>
-    `;
+    const stop = () => { isDragging = false; };
+    container.addEventListener('pointerup', stop);
+    container.addEventListener('pointercancel', stop);
+
+    const render = () => {
+      if (!this.isConnected) return;
+      ctx.clearRect(0, 0, width, height);
+
+      const isLight = container.closest('.stage-light') !== null;
+
+      if (!isDragging) {
+        velY *= 0.94;
+        velX *= 0.94;
+        if (currentMode === 'table') {
+          // Table mode smoothly aligns frontally so all 18 columns remain legible
+          rotY += velY;
+          rotX += velX;
+          rotY += (0 - rotY) * 0.08;
+          rotX += (0 - rotX) * 0.08;
+        } else {
+          rotY += 0.012 + velY;
+          rotX += velX;
+          rotX += (0.15 - rotX) * 0.02;
+        }
+      }
+
+      const cx = width / 2;
+      const cy = height / 2 - 18; // generous clearance above bottom toolbar
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+      const fov = 340;
+
+      const queue = [];
+      const ease = 0.085;
+
+      for (let i = 0; i < N; i++) {
+        const item = items[i];
+        item.curX += (item.tgtX - item.curX) * ease;
+        item.curY += (item.tgtY - item.curY) * ease;
+        item.curZ += (item.tgtZ - item.curZ) * ease;
+
+        const x1 = item.curX * cosY + item.curZ * sinY;
+        const z1 = -item.curX * sinY + item.curZ * cosY;
+        const y2 = item.curY * cosX - z1 * sinX;
+        const z2 = item.curY * sinX + z1 * cosX;
+
+        const scale = fov / (fov + z2 + 100);
+        const px = cx + x1 * scale;
+        const py = cy + y2 * scale;
+
+        queue.push({
+          px, py, z: z2, scale,
+          color: item.color,
+          sym: item.el.symbol,
+          num: item.el.number
+        });
+      }
+
+      queue.sort((a, b) => a.z - b.z);
+
+      const qLen = queue.length;
+      const cardW = (currentMode === 'table' ? 12.5 : 15);
+      const cardH = (currentMode === 'table' ? 15 : 18);
+
+      for (let i = 0; i < qLen; i++) {
+        const p = queue[i];
+        const alpha = Math.max(0.2, Math.min(1.0, (p.z + 140) / 240));
+        const w = cardW * p.scale;
+        const h = cardH * p.scale;
+
+        // Card body adapts to light or dark stage
+        ctx.fillStyle = isLight 
+          ? `rgba(255, 255, 255, ${0.94 * alpha})`
+          : `rgba(13, 19, 34, ${0.85 * alpha})`;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = Math.max(0.8, 1.2 * p.scale);
+        ctx.globalAlpha = alpha;
+
+        ctx.beginPath();
+        ctx.roundRect(p.px - w / 2, p.py - h / 2, w, h, 2.5 * p.scale);
+        ctx.fill();
+        ctx.stroke();
+
+        // Symbol
+        if (p.scale > 0.48) {
+          ctx.fillStyle = p.color;
+          ctx.font = `bold ${Math.round((currentMode === 'table' ? 6.8 : 7.5) * p.scale)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.sym, p.px, p.py + 0.5);
+        }
+      }
+      ctx.globalAlpha = 1.0;
+
+      this._animId = requestAnimationFrame(render);
+    };
+
+    this._animId = requestAnimationFrame(render);
+  }
+
+  disconnectedCallback() {
+    if (this._animId) cancelAnimationFrame(this._animId);
+    if (this._ro) this._ro.disconnect();
   }
 }
-customElements.define('quantum-loader', QuantumLoader);
+customElements.define('periodic-table-3d', PeriodicTable3D);
 
 /* --------------------------------------------------------------------------
    COMPONENTS REGISTRY FOR HAPTIXUI
@@ -366,8 +1080,6 @@ export const COMPONENTS_REGISTRY = [
     name: 'Animated Download Button',
     category: 'Buttons',
     badge: 'State Transition',
-    views: '48.2K',
-    likes: '4.8K',
     description: 'A 3-state morphing button: Idle with badge -> In-progress state with percentage interpolation -> Completion state with animated checkmark.',
     previewTag: '<download-button></download-button>',
     htmlCode: `<!-- Custom Element -->
@@ -402,8 +1114,6 @@ const TRANSITIONS = {
     name: 'Add to Cart Delivery Button',
     category: 'Buttons',
     badge: 'Motion Sequence',
-    views: '32.1K',
-    likes: '3.1K',
     description: 'Shopping cart morphs into a delivery truck sequence with road animation and transitions to an order confirmed state.',
     previewTag: '<cart-button></cart-button>',
     htmlCode: `<cart-button></cart-button>`,
@@ -420,133 +1130,307 @@ const TRANSITIONS = {
 });`
   },
   {
-    id: 'heart-burst',
-    name: 'Particle Heart Like Button',
+    id: 'cyber-switch',
+    name: 'Cybernetic Tactile Toggle Switch',
     category: 'Buttons',
-    badge: 'Particle System',
-    views: '29.7K',
-    likes: '2.9K',
-    description: 'Interactive favorite button featuring spring scale physics, radial particle burst, and dynamic count increment.',
-    previewTag: '<heart-button></heart-button>',
-    htmlCode: `<heart-button></heart-button>`,
-    cssCode: `@keyframes explodeSpark {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-}`,
-    jsCode: `// Emits 14 radial particles with calculated trigonometric trajectories`
-  },
-  {
-    id: 'copy-button',
-    name: 'Fluid Ripple Copy Button',
-    category: 'Buttons',
-    badge: 'State Feedback',
-    views: '21.4K',
-    likes: '2.3K',
-    description: 'Haptic-style clipboard copy button that fluidly transitions from copy icon to emerald checkmark with instant feedback.',
-    previewTag: '<copy-button></copy-button>',
-    htmlCode: `<copy-button></copy-button>`,
-    cssCode: `.copy-pill-btn.copied {
-  background: #0d2818;
-  border-color: #22c55e;
-  color: #4ade80;
-}`,
-    jsCode: `btn.addEventListener('click', () => {
-  btn.classList.add('copied');
-  text.textContent = 'Copied!';
-  setTimeout(() => btn.classList.remove('copied'), 2400);
-});`
-  },
-  {
-    id: 'trash-delete',
-    name: 'Destructive Delete Button',
-    category: 'Buttons',
-    badge: 'Destructive Action',
-    views: '19.8K',
-    likes: '1.8K',
-    description: 'Animated confirmation action: Container lid opens with spring ease, items drop in, and button locks into a deleted state.',
-    previewTag: '<trash-button></trash-button>',
-    htmlCode: `<trash-button></trash-button>`,
-    cssCode: `.trash-btn:hover .trash-can-lid {
-  transform: rotate(-30deg) translateY(-2px);
+    badge: 'Tactile Physics',
+    description: 'A mechanical slide switch with sub-surface luminous rail, active status LED, and physical spring inertia.',
+    previewTag: '<cyber-switch></cyber-switch>',
+    htmlCode: `<!-- Custom Element (Zero Setup) -->
+<cyber-switch></cyber-switch>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">
+
+<script type="module">
+  const toggle = document.querySelector('cyber-switch');
+  toggle?.addEventListener('change', (e) => {
+    console.log('Switch active:', e.detail.active);
+  });
+</script>`,
+    cssCode: `/* Cyber Switch Chassis & Rail */
+.switch-chassis {
+  position: relative;
+  width: 116px;
+  height: 50px;
+  background: #0d1017;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  padding: 4px;
 }
-.trash-btn.deleting {
-  animation: trashShake 0.4s ease infinite;
+.switch-thumb {
+  position: absolute;
+  left: 4px;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(145deg, #242938, #141722);
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cyber-switch-btn.is-active .switch-thumb {
+  transform: translateX(66px);
+  background: linear-gradient(145deg, #0f2b48, #0a1b2d);
 }`,
-    jsCode: `btn.addEventListener('click', () => {
-  btn.classList.add('deleting');
-  setTimeout(() => btn.classList.add('deleted'), 1000);
+    jsCode: `// Toggle State Listener
+const toggle = document.querySelector('cyber-switch');
+toggle.addEventListener('change', (e) => {
+  console.log('Status:', e.detail.active ? 'ARMED' : 'STANDBY');
 });`
   },
   {
-    id: 'theme-toggle',
-    name: 'Celestial Day & Night Switch',
-    category: 'Toggles',
-    badge: 'Theme Switch',
-    views: '36.5K',
-    likes: '3.6K',
-    description: 'Smooth celestial switch: Cratered moon with starry night sky morphs into radiant daylight sun with cloud geometry.',
-    previewTag: '<theme-toggle></theme-toggle>',
-    htmlCode: `<theme-toggle></theme-toggle>`,
-    cssCode: `.theme-switch.is-day .celestial-orb {
-  transform: translateX(40px);
-  background: #facc15;
-  box-shadow: 0 0 16px rgba(250, 204, 21, 0.9);
+    id: 'heart-3d',
+    name: '3D Rotating Glowing Heart',
+    category: 'Interactive',
+    badge: 'Canvas 3D',
+    description: 'A 3D volumetric heart composed of 2,600 mathematical points plotted via cardioid parametric equations with pure continuous 360° rotation.',
+    previewTag: '<heart-3d></heart-3d>',
+    htmlCode: `<!-- Method 1: Web Component (Zero Setup) -->
+<heart-3d></heart-3d>
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">
+
+<!-- Method 2: Standalone HTML5 Canvas -->
+<!-- <canvas id="heartCanvas" width="600" height="600"></canvas> -->`,
+    cssCode: `/* 3D Heart Canvas Container */
+.heart-3d-container, #heartCanvas {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+  cursor: grab;
+  touch-action: none;
+  background: transparent;
+}
+.heart-3d-container:active, #heartCanvas:active {
+  cursor: grabbing;
 }`,
-    jsCode: `toggle.addEventListener('click', () => {
-  toggle.classList.toggle('is-day');
-});`
+    jsCode: `// 0. Canvas Setup
+const canvas = document.getElementById('heartCanvas') || document.querySelector('canvas');
+const ctx = canvas.getContext('2d');
+const width = canvas.width || 600;
+const height = canvas.height || 600;
+const cx = width / 2;
+const cy = height / 2;
+const scale = 140;
+
+// 1. Parametric 3D Heart Equation
+function heart(u) {
+  const x = 1.6 * Math.pow(Math.sin(u), 3);
+  const y = 1.3 * Math.cos(u)
+          - 0.5 * Math.cos(2 * u)
+          - 0.2 * Math.cos(3 * u)
+          - 0.1 * Math.cos(4 * u);
+  return { x, y };
+}
+
+// 2. Generate 3,000 Volumetric Points
+const points = [];
+for (let i = 0; i < 3000; i++) {
+  const u = Math.random() * Math.PI * 2;
+  const { x, y } = heart(u);
+  const rad = Math.sqrt(Math.random());
+  const z = 1.1 * (1 - rad) * (Math.random() * 2 - 1);
+  points.push({ x: x * rad, y: y * rad, z });
+}
+
+// 3. Real-Time 3D Rotation Matrix
+function rotate3D(x, y, z, theta) {
+  const xr = x * Math.cos(theta) + z * Math.sin(theta);
+  const zr = -x * Math.sin(theta) + z * Math.cos(theta);
+  return { xr, yr: y, zr };
+}
+
+// 4. Depth Sorting & Color Shading
+function getDepthColor(depth) {
+  const f = Math.max(0, Math.min(1, depth));
+  const r = Math.round(145 + 100 * f);
+  const g = Math.round(15 + 5 * f);
+  const b = Math.round(30 + 35 * f);
+  return \`rgb(\${r}, \${g}, \${b})\`;
+}
+
+function drawGlowPoint(px, py, depth) {
+  const size = 1.2 + depth * 1.8;
+  ctx.fillStyle = getDepthColor(depth);
+  ctx.beginPath();
+  ctx.arc(px, py, size, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// 5. 60 FPS Canvas Render Loop
+function render(time = 0) {
+  ctx.clearRect(0, 0, width, height);
+  const theta = time * 0.002;
+
+  const projected = points.map(pt => rotate3D(pt.x, pt.y, pt.z, theta));
+  projected.sort((a, b) => a.zr - b.zr);
+
+  projected.forEach(({ xr, yr, zr }) => {
+    const depth = (zr + 1.1) / 2.2;
+    const px = cx + xr * scale;
+    const py = cy - yr * scale;
+    drawGlowPoint(px, py, depth);
+  });
+
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);`
   },
   {
-    id: 'cyber-toggle',
-    name: 'Pulse Cyber Toggle Switch',
-    category: 'Toggles',
-    badge: 'Tactile Toggle',
-    views: '27.3K',
-    likes: '2.7K',
-    description: 'Futuristic mechanical tactile toggle with illuminated power rails, sliding armature and high-contrast status indicator.',
-    previewTag: '<cyber-toggle></cyber-toggle>',
-    htmlCode: `<cyber-toggle></cyber-toggle>`,
-    cssCode: `.cyber-switch.active .cyber-thumb {
-  transform: translateX(46px);
-  background: #00a8ff;
+    id: 'sakura-tree',
+    name: 'Sakura Fractal Tree',
+    category: 'Interactive',
+    badge: 'Generative Canvas',
+    description: 'An organic recursive fractal tree blooming with soft cherry blossom petals and falling sakura breezes at 60 FPS.',
+    previewTag: '<sakura-tree></sakura-tree>',
+    htmlCode: `<!-- Custom Element -->
+<sakura-tree></sakura-tree>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* Sakura Tree Stage */
+.sakura-tree-container {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+}
+.sakura-tree-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }`,
-    jsCode: `switchBtn.addEventListener('click', () => {
-  switchBtn.classList.toggle('active');
-});`
+    jsCode: `// 1. Recursive Fractal Branching
+function drawBranch(x, y, len, angle, depth) {
+  if (depth === 0) {
+    drawBlossoms(x, y);
+    return;
+  }
+  const x2 = x + len * Math.sin(angle);
+  const y2 = y - len * Math.cos(angle);
+
+  ctx.lineWidth = Math.max(1, depth * 1.4);
+  ctx.strokeStyle = getBarkColor(depth);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+
+  // Recursive bifurcations
+  drawBranch(x2, y2, len * 0.78, angle - 0.36, depth - 1);
+  drawBranch(x2, y2, len * 0.78, angle + 0.36, depth - 1);
+}
+
+// 2. Sakura Petal Blossom Clusters
+function drawBlossoms(x, y) {
+  ctx.fillStyle = '#ff7597';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(x, y - 4, 3, 5, (i * Math.PI * 2) / 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// 3. 60 FPS Breeze Sway Loop
+function render() {
+  ctx.clearRect(0, 0, width, height);
+  drawBranch(width / 2, height - 20, 110, 0, 8);
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);`
   },
   {
-    id: 'hologram-card',
-    name: '3D Holographic Tilt Card',
-    category: 'Cards',
-    badge: '3D Perspective',
-    views: '44.1K',
-    likes: '4.2K',
-    description: 'Gyroscope-style mouse-tracking 3D tilt card with dynamic iridescent sheen following cursor coordinates.',
-    previewTag: '<hologram-card></hologram-card>',
-    htmlCode: `<hologram-card></hologram-card>`,
-    cssCode: `.holo-card {
-  transform-style: preserve-3d;
-  transition: transform 0.15s ease-out;
+    id: 'dna-helix',
+    name: '3D Interactive DNA Double Helix',
+    category: 'Interactive',
+    badge: 'Canvas 3D',
+    description: 'Mathematical 3D antiparallel double helix with nucleotide base pairs (Adenine-Thymine, Guanine-Cytosine), hydrogen bonds, and interactive 3D drag physics.',
+    previewTag: '<dna-helix></dna-helix>',
+    htmlCode: `<!-- Custom Element (Zero Config) -->
+<dna-helix></dna-helix>
+
+<!-- Load Component Script & Styles -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* 3D DNA Helix Container */
+.dna-helix-container {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  cursor: grab;
+  touch-action: none;
+}
+.dna-helix-container:active {
+  cursor: grabbing;
+}
+.dna-helix-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }`,
-    jsCode: `card.addEventListener('mousemove', (e) => {
-  const rotateX = ((y - centerY) / centerY) * -14;
-  const rotateY = ((x - centerX) / centerX) * 14;
-  card.style.transform = \`rotateX(\${rotateX}deg) rotateY(\${rotateY}deg)\`;
-});`
+    jsCode: `// 1. Antiparallel 3D Double Helix Coordinates
+for (let i = 0; i < numPairs; i++) {
+  const t = i / (numPairs - 1);
+  const y = (t - 0.5) * helixHeight;
+  const theta = t * Math.PI * 2 * turns;
+
+  // Strand A & Strand B (Opposite Phase)
+  const pA = project(R * Math.cos(theta), y, R * Math.sin(theta));
+  const pB = project(R * Math.cos(theta + Math.PI), y, R * Math.sin(theta + Math.PI));
+
+  // 2. Draw Nucleotide Base Pair Rung
+  drawRung(pA, pB, getPairColor(i));
+}
+
+// 3. 3D Perspective Projection Matrix
+function project(x, y, z) {
+  const xr = x * Math.cos(rotY) + z * Math.sin(rotY);
+  const zr = -x * Math.sin(rotY) + z * Math.cos(rotY);
+  const yr = y * Math.cos(rotX) - zr * Math.sin(rotX);
+  const scale = 420 / (420 + zr);
+  return { px: cx + xr * scale, py: cy + yr * scale, z: zr };
+}`
   },
   {
-    id: 'quantum-loader',
-    name: 'Infinity Quantum Orbit Loader',
-    category: 'Loaders',
-    badge: 'Micro-Motion',
-    views: '31.8K',
-    likes: '3.0K',
-    description: 'Multi-axis 3D particle orbit loader spinning on 3 distinct rotational geometric planes with a pulsing energy nucleus.',
-    previewTag: '<quantum-loader></quantum-loader>',
-    htmlCode: `<quantum-loader></quantum-loader>`,
-    cssCode: `.orbit-1 { animation: rotateOrbit1 1.6s linear infinite; }
-.orbit-2 { animation: rotateOrbit2 1.4s linear infinite reverse; }
-.orbit-3 { animation: rotateOrbit3 1.8s linear infinite; }`,
-    jsCode: `// Pure CSS 3D hardware-accelerated transforms`
+    id: 'periodic-table-3d',
+    name: '3D Interactive Periodic Table',
+    category: 'Interactive',
+    badge: 'Interactive 3D',
+    description: 'All 118 chemical elements in interactive 3D space with smooth real-time switching between Sphere, Helix, Table, and 3D Grid layouts.',
+    previewTag: '<periodic-table-3d></periodic-table-3d>',
+    htmlCode: `<!-- Custom Element (Zero Config) -->
+<periodic-table-3d></periodic-table-3d>
+
+<!-- Full Standalone Experience: periodic_table.html -->
+<script type="module" src="components.js"></script>
+<link rel="stylesheet" href="components.css">`,
+    cssCode: `/* 3D Periodic Table Container */
+.ptable-wrap {
+  width: 100%;
+  height: 220px;
+  background: #07090e;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}`,
+    jsCode: `// 1. Fibonacci Spherical Distribution
+const phi = Math.acos(-1 + (2 * i) / N);
+const theta = Math.sqrt(N * Math.PI) * phi;
+x = radius * Math.sin(phi) * Math.sin(theta);
+y = -radius * Math.cos(phi);
+z = radius * Math.sin(phi) * Math.cos(theta);
+
+// 2. Smooth Layout Spring Interpolation
+cur.x += (target.x - cur.x) * 0.085;
+cur.y += (target.y - cur.y) * 0.085;
+cur.z += (target.z - cur.z) * 0.085;`
   }
 ];
